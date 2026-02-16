@@ -18,9 +18,25 @@ export class TaskManager {
     }
 
     /**
-     * Elimina una tarea por su ID.
+     * Mueve una tarea a la papelera (marcado lógico).
      */
     removeTask(id) {
+        const task = this.getTask(id);
+        if (task) task.deleted = true;
+    }
+
+    /**
+     * Restaura una tarea de la papelera.
+     */
+    restoreTask(id) {
+        const task = this.getTask(id);
+        if (task) task.deleted = false;
+    }
+
+    /**
+     * Elimina físicamente una tarea.
+     */
+    permanentlyDeleteTask(id) {
         this.tasks = this.tasks.filter(task => task.id !== id);
     }
 
@@ -32,10 +48,24 @@ export class TaskManager {
     }
 
     /**
-     * Devuelve todas las tareas.
+     * Devuelve todas las tareas (incluyendo eliminadas).
      */
     getTasks() {
         return this.tasks;
+    }
+
+    /**
+     * Devuelve solo tareas activas.
+     */
+    getActiveTasks() {
+        return this.tasks.filter(t => !t.deleted);
+    }
+
+    /**
+     * Devuelve tareas en la papelera.
+     */
+    getDeletedTasks() {
+        return this.tasks.filter(t => t.deleted);
     }
 
     /**
@@ -47,7 +77,8 @@ export class TaskManager {
             t.id,
             t.completed,
             t.createdAt || new Date(),
-            t.deadline
+            t.deadline,
+            t.deleted || false
         ));
     }
 }

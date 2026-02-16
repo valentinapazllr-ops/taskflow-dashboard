@@ -10,12 +10,13 @@ export class Task {
      * @param {Date|string} createdAt - Fecha de creación.
      * @param {string|null} deadline - Fecha límite (YYYY-MM-DD).
      */
-    constructor(description, id = null, completed = false, createdAt = new Date(), deadline = null) {
+    constructor(description, id = null, completed = false, createdAt = new Date(), deadline = null, deleted = false) {
         this.id = id || `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         this.description = description;
         this.completed = completed;
         this.createdAt = new Date(createdAt);
         this.deadline = deadline ? new Date(deadline) : null;
+        this.deleted = deleted;
     }
 
     /**
@@ -53,7 +54,8 @@ export class Task {
             description: this.description,
             completed: this.completed,
             createdAt: this.createdAt.toISOString(),
-            deadline: this.deadline ? this.deadline.toISOString().split('T')[0] : null
+            deadline: this.deadline ? this.deadline.toISOString().split('T')[0] : null,
+            deleted: this.deleted
         };
     }
 }

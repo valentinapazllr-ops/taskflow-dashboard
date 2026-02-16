@@ -7,9 +7,11 @@ const taskForm = document.getElementById('task-form');
 const taskInput = document.getElementById('task-input');
 const taskDeadline = document.getElementById('task-deadline');
 const taskList = document.getElementById('task-list');
+const deletedTaskList = document.getElementById('deleted-task-list');
 const totalCount = document.getElementById('total-count');
 const pendingCount = document.getElementById('pending-count');
 const completedCount = document.getElementById('completed-count');
+const deletedCount = document.getElementById('deleted-count');
 const syncBtn = document.getElementById('sync-api');
 const themeToggle = document.getElementById('theme-toggle');
 const notificationContainer = document.getElementById('notification-container');
@@ -34,18 +36,36 @@ const showNotification = (message, type = 'primary') => {
  * Renderiza la lista de tareas.
  */
 const renderTasks = () => {
-    taskList.innerHTML = '';
-    const tasks = taskManager.getTasks();
+    // Render Active Tasks
+    renderTaskList(taskManager.getActiveTasks(), taskList, false);
+    // Render Deleted Tasks
+    renderTaskList(taskManager.getDeletedTasks(), deletedTaskList, true);
+
+    updateStats();
+};
+
+/**
+ * Renderiza una lista específica de tareas.
+ */
+const renderTaskList = (tasks, container, isDeleted) => {
+    container.innerHTML = '';
 
     if (tasks.length === 0) {
-        taskList.innerHTML = `
-            <li class="empty-state" style="text-align: center; grid-column: 1/-1; padding: 3rem 1rem; color: var(--text-muted);">
-                <i class="fas fa-clipboard-list" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-                <p style="font-size: 1.1rem; font-weight: 500;">Tu lista está vacía</p>
-                <small>Agrega una tarea para comenzar a organizarte</small>
-            </li>`;
-        updateStats();
+        if (!isDeleted) {
+            container.innerHTML = `
+                <li class="empty-state">
+                    <i class="fas fa-clipboard-list"></i>
+                    <p>Tu lista está vacía</p>
+                    <small>Agrega una tarea para comenzar a organizarte</small>
+                </li>`;
+        } else {
+            document.getElementById('deleted-section').style.display = 'none';
+        }
         return;
+    }
+
+    if (isDeleted) {
+        document.getElementById('deleted-section').style.display = 'block';
     }
 
     // Sort tasks: pending first, then by deadline
@@ -64,7 +84,7 @@ const renderTasks = () => {
 
         const timeRemaining = task.getTimeRemaining();
         let countdownHTML = '';
-        if (timeRemaining && !completed) {
+        if (timeRemaining && !completed && !isDeleted) {
             if (timeRemaining.expired) {
                 countdownHTML = '<span class="countdown">⚠️ Expirada</span>';
             } else {
@@ -75,29 +95,45 @@ const renderTasks = () => {
             }
         }
 
-        li.innerHTML = `
-            <input type="checkbox" ${completed ? 'checked' : ''} class="toggle-task" aria-label="Marcar como completada">
-            <span class="description">${description}</span>
-            <div class="task-info">
-                ${deadline ? `<span><i class="far fa-calendar-alt"></i> ${new Date(deadline).toLocaleDateString()}</span>` : ''}
-                ${countdownHTML}
-            </div>
-            <button class="delete-btn" title="Eliminar tarea" aria-label="Eliminar tarea">
-                <i class="fas fa-trash-alt"></i>
-            </button>
-        `;
+        if (!isDeleted) {
+            li.innerHTML = `
+                <input type="checkbox" ${completed ? 'checked' : ''} class="toggle-task" aria-label="Marcar como completada">
+                <span class="description">${description}</span>
+                <div class="task-info">
+                    ${deadline ? `<span><i class="far fa-calendar-alt"></i> ${new Date(deadline).toLocaleDateString()}</span>` : ''}
+                    ${countdownHTML}
+                </div>
+                <button class="delete-btn" title="Mover a la papelera" aria-label="Mover a la papelera">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            `;
+        } else {
+            li.innerHTML = `
+                <span class="description">${description}</span>
+                <div class="actions-container">
+                    <button class="restore-btn" title="Restaurar tarea" aria-label="Restaurar tarea">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                    <button class="permanent-delete-btn" title="Eliminar permanentemente" aria-label="Eliminar permanentemente">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                </div>
+            `;
+        }
 
-        taskList.appendChild(li);
+        container.appendChild(li);
     });
-
-    updateStats();
 };
 
 const updateStats = () => {
-    const tasks = taskManager.getTasks();
-    totalCount.textContent = tasks.length;
-    pendingCount.textContent = tasks.filter(t => !t.completed).length;
-    completedCount.textContent = tasks.filter(t => t.completed).length;
+    const allTasks = taskManager.getTasks();
+    const activeTasks = taskManager.getActiveTasks();
+    const deletedTasks = taskManager.getDeletedTasks();
+
+    totalCount.textContent = activeTasks.length;
+    pendingCount.textContent = activeTasks.filter(t => !t.completed).length;
+    completedCount.textContent = activeTasks.filter(t => t.completed).length;
+    deletedCount.textContent = deletedTasks.length;
 };
 
 const handleAddTask = async (e) => {
@@ -194,12 +230,33 @@ taskList.addEventListener('click', (e) => {
         taskManager.removeTask(id);
         saveTasks();
         renderTasks();
-        showNotification('Tarea eliminada');
+        showNotification('Tarea movida a la papelera');
     } else if (e.target.classList.contains('toggle-task')) {
         const task = taskManager.getTask(id);
         task.toggleStatus();
         saveTasks();
         renderTasks();
+    }
+});
+
+deletedTaskList.addEventListener('click', (e) => {
+    const item = e.target.closest('.task-item');
+    if (!item) return;
+
+    const id = item.dataset.id;
+
+    if (e.target.closest('.restore-btn')) {
+        taskManager.restoreTask(id);
+        saveTasks();
+        renderTasks();
+        showNotification('Tarea restaurada');
+    } else if (e.target.closest('.permanent-delete-btn')) {
+        if (confirm('¿Estás seguro de eliminar esta tarea permanentemente?')) {
+            taskManager.permanentlyDeleteTask(id);
+            saveTasks();
+            renderTasks();
+            showNotification('Tarea eliminada definitivamente', 'danger');
+        }
     }
 });
 

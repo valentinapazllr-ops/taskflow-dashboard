@@ -76,12 +76,26 @@
                         <span id="completed-count">0</span>
                         <label>Completadas</label>
                     </div>
+                    <div class="stat-card" aria-label="Tareas eliminadas">
+                        <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                        <span id="deleted-count">0</span>
+                        <label>Eliminadas</label>
+                    </div>
                 </div>
 
                 <div class="task-list-container">
                     <h3 class="sr-only">Tu lista de tareas</h3>
                     <ul id="task-list" aria-live="polite">
                         <!-- Tareas dinámicas aquí -->
+                    </ul>
+                </div>
+
+                <div class="task-list-container deleted-tasks-section" id="deleted-section">
+                    <h3>
+                        <i class="fas fa-trash-alt"></i> Papelera de Reciclaje
+                    </h3>
+                    <ul id="deleted-task-list" aria-live="polite">
+                        <!-- Tareas eliminadas aquí -->
                     </ul>
                 </div>
             </section>

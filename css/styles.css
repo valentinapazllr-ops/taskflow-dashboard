@@ -458,6 +458,88 @@ footer p {
     border-width: 0;
 }
 
+/* Deleted Tasks Section */
+.deleted-tasks-section {
+    margin-top: 2rem;
+    opacity: 0.8;
+}
+
+.deleted-tasks-section .task-item {
+    border-left-color: var(--text-muted);
+    filter: grayscale(0.5);
+}
+
+.deleted-tasks-section .task-item:hover {
+    filter: grayscale(0);
+}
+
+/* Action Buttons for Trash */
+.actions-container {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.restore-btn {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--accent);
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    border: none;
+    transition: var(--transition-base);
+}
+
+.restore-btn:hover {
+    background: var(--accent);
+    color: white;
+    transform: rotate(-30deg) scale(1.1);
+}
+
+.permanent-delete-btn {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    border: none;
+    transition: var(--transition-base);
+}
+
+.permanent-delete-btn:hover {
+    background: var(--danger);
+    color: white;
+    transform: scale(1.1);
+}
+
+/* Empty State Styling */
+.empty-state {
+    text-align: center;
+    grid-column: 1 / -1;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
 /* Responsive */
 @media (max-width: 700px) {
     .input-group {
